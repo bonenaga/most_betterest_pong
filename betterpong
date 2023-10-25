@@ -1,0 +1,249 @@
+import pygame
+import random
+
+pygame.init()
+
+#initialization
+#screen size
+WIDTH = 1000
+HEIGHT = 600
+wn = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Most Betterest Pong")
+
+#variable to test if game is running
+run = True
+
+#ball and color setup
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+#GREEN = (0, 255, 0)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+radius = 15
+ball_x, ball_y = (WIDTH/2 - radius), (HEIGHT/2 - radius)
+ball_vel_x, ball_vel_y = 0.7, 0.7
+dummyball_x, dummyball_y = (WIDTH/2 - radius), (HEIGHT/2 - radius)
+dummyball_vel_x, dummyball_vel_y = 0.7, 0.7
+ball_speed = 0.7
+max_speed = 5
+angle = [0.7, 1.4]
+
+#paddle setup
+pad_width, pad_height = 20, 120
+left_pad_x = (100 - pad_width/2)
+right_pad_x = (WIDTH - (100 - pad_width/2))
+left_pad_y = right_pad_y = (HEIGHT/2 - pad_height/2)
+left_pad_vel = right_pad_vel = 0
+
+#supers
+left_super = right_super = 0
+smash = teleport = 0
+left_super_remain = right_super_remain = 5
+
+#Score
+score_1 = 0
+score_2 = 0
+
+#functions
+#reverses direction of the main ball and dummy ball
+def ball_reverse():
+    global ball_vel_x, dummyball_vel_x
+    ball_vel_x *= -1
+    dummyball_vel_x *= -1
+    return ball_vel_x, dummyball_vel_x
+
+#resets position of the main ball and dummy ball to the center of the screen
+def ball_reset():
+    global ball_x, ball_y, dummyball_x, dummyball_y
+    ball_x, ball_y = (WIDTH/2 - radius), (HEIGHT/2 - radius)
+    dummyball_x, dummyball_y = ball_x, ball_y
+
+#resets ball and randomizes direction
+def ball_rand_dir():
+    global teleport, smash, ball_vel_x, ball_vel_y, dummyball_vel_x, dummyball_vel_y
+    ball_reset()
+    dir = random.choice([ball_speed, ball_speed * -1])
+    ang = random.choice(angle)
+    ang = random.choice([ang, -ang])
+    ball_vel_x = dir
+    ball_vel_y = ang
+    dummyball_vel_x = ball_vel_x
+    dummyball_vel_y = ball_vel_y
+    teleport = 0
+    smash = 0
+
+#Paddle collision and super smash functions
+def ball_collision(super, super_remain):
+    global ball_x, ball_vel_x, teleport, smash, dummyball_vel_x, dummyball_vel_y, left_super, left_super_remain, right_super, right_super_remain
+    ball_reverse()
+    split = random.choice([0, 1, 2, 3, 4, 5, 6, 7])
+    if smash == 1 and teleport != 1:
+        split = 2
+    if split == 2:
+        dummyball_vel_y *= -2
+        split = 0
+    if left_super == 1 and super is left_super:
+        ball_vel_x = ball_vel_x*3
+        dummyball_vel_x = dummyball_vel_x*3
+        super_use(super, super_remain)
+        smash = 1
+    if right_super == 1 and super is right_super:
+        ball_vel_x = ball_vel_x*3
+        dummyball_vel_x = dummyball_vel_x*3
+        super_use(super, super_remain)
+        smash = 1    
+    if left_super != 1 and right_super != 1:
+        ball_vel_x *= 1.2
+        dummyball_vel_x *= 1.2
+    return super, super_remain
+
+#Deducts the super use from the user's remaining uses
+def super_use(super, super_remain):
+    global smash, teleport, left_super, left_super_remain, right_super, right_super_remain
+    if super is left_super:
+        left_super = 0
+        left_super_remain -= 1
+    elif super is right_super:
+        right_super = 0
+        right_super_remain -= 1
+
+#runs ball_rand_dir to randomize direction at the start of the game
+ball_rand_dir()
+
+#main game loop
+while run:
+
+    #gets user input
+    for i in pygame.event.get():
+        #quits if user hits the close window button
+        if i.type == pygame.QUIT:
+            run = False
+        #checks for paddle input
+        if i.type == pygame.KEYDOWN:
+            #right paddle (up, down, left, right)
+            if i.key == pygame.K_UP:
+                right_pad_vel = -0.9
+            if i.key == pygame.K_DOWN: 
+                right_pad_vel = 0.9
+            if i.key == pygame.K_LEFT and right_super_remain > 0:
+                right_super = 1
+            if i.key == pygame.K_RIGHT and right_super_remain > 0:
+                right_super = 2
+                right_pad_vel = 0
+            #left paddle (wasd)
+            if i.key == pygame.K_w:
+                left_pad_vel = -0.9
+            if i.key == pygame.K_s:
+                left_pad_vel = 0.9
+            if i.key == pygame.K_d and left_super_remain > 0:
+                left_super = 1
+            if i.key == pygame.K_a and left_super_remain > 0:
+                left_super = 2
+                left_pad_vel = 0
+
+    #ball boundary controls
+    #top/bottom boundaries
+    if ball_y <= (0 + radius) or ball_y >= (HEIGHT - radius) or dummyball_y <= (0 + radius) or dummyball_y >= (HEIGHT - radius):
+        ball_vel_y *= -1
+        dummyball_vel_y *= -1
+    #left/right boundaries
+    if ball_x <= (0 + radius):
+        ball_rand_dir()
+        score_2 += 1
+        ball_speed += 0.1
+    if ball_x >= (WIDTH - radius):
+        ball_rand_dir()
+        score_1 += 1
+        ball_speed += 0.1
+
+    #paddle boundary controls
+    if left_pad_y >= (HEIGHT - pad_height):
+        left_pad_y = (HEIGHT - pad_height)
+    if left_pad_y <= 0:
+        left_pad_y = 0
+    if right_pad_y >= (HEIGHT - pad_height):
+        right_pad_y = (HEIGHT - pad_height)
+    if right_pad_y <= 0:
+        right_pad_y = 0
+
+    #ball and paddle collisions
+    #left paddle
+    if left_pad_x <= ball_x <= (left_pad_x + pad_width):
+        if left_pad_y <= ball_y <= (left_pad_y + pad_height):
+            ball_x = left_pad_x + pad_width
+            dummyball_x = left_pad_x + pad_width
+            ball_collision(left_super, left_super_remain)
+    #right paddle
+    if right_pad_x <= ball_x <= (right_pad_x + pad_width):
+        if right_pad_y <= ball_y <= (right_pad_y + pad_height):
+            ball_x = right_pad_x
+            dummyball_x = right_pad_x
+            ball_collision(right_super, right_super_remain)
+
+    #left teleport
+    if left_super == 2:
+        left_pad_y = ball_y
+        super_use(left_super, left_super_remain)
+        teleport = 1
+    #right teleport
+    if right_super == 2:
+        right_pad_y = ball_y
+        super_use(right_super, right_super_remain)
+        teleport = 1
+
+    #object movement and fills in old object position with black
+    if ball_vel_x > max_speed:
+        ball_vel_x = max_speed
+    if ball_vel_y > max_speed:
+        ball_vel_y = max_speed
+    if dummyball_vel_x > max_speed:
+        dummyball_vel_x = max_speed
+    if dummyball_vel_y > max_speed:
+        dummyball_vel_y = max_speed
+    ball_x += ball_vel_x
+    ball_y += ball_vel_y
+    dummyball_x += dummyball_vel_x
+    dummyball_y += dummyball_vel_y
+    right_pad_y += right_pad_vel
+    left_pad_y += left_pad_vel
+    wn.fill(BLACK)
+
+    #Scoreboard
+    font = pygame.font.SysFont('arial', 32)
+    score_left = font.render("Player 1: " + str(score_1), True, WHITE)
+    wn.blit(score_left, (25, 25))
+    super_left = font.render("Super: " + str(left_super_remain), True, WHITE)
+    wn.blit(super_left, (25, 65))
+    score_right = font.render("Player 2: " + str(score_2), True, WHITE)
+    wn.blit(score_right, (825, 25))    
+    super_right = font.render("Super: " + str(right_super_remain), True, WHITE)
+    wn.blit(super_right, (825, 65)) 
+
+    #OBJECTS
+    #draws ball and paddles
+    pygame.draw.circle(wn, RED, (ball_x, ball_y), radius)
+    pygame.draw.circle(wn, RED, (dummyball_x, dummyball_y), radius)
+    pygame.draw.rect(wn, BLUE, pygame.Rect(left_pad_x, left_pad_y, pad_width, pad_height))
+    pygame.draw.rect(wn, BLUE, pygame.Rect(right_pad_x, right_pad_y, pad_width, pad_height))
+    #draws indicator for super use
+    if left_super == 1:
+        pygame.draw.circle(wn, WHITE, (left_pad_x + 10, left_pad_y + pad_height/2), 4)
+    if right_super == 1:
+        pygame.draw.circle(wn, WHITE, (right_pad_x + 10, right_pad_y + pad_height/2), 4)
+    
+    
+    #Winning
+    winning_font = pygame.font.SysFont('arial', 100)
+    if score_1 > 5:
+        ball_vel_x = 0
+        wn.fill(BLACK)
+        endscreen = winning_font.render("PLAYER 1 WINS!!!", True, WHITE)
+        wn.blit(endscreen, (100, 250))
+    if score_2 > 5:
+        ball_vel_x = 0
+        wn.fill(BLACK)
+        endscreen = winning_font.render("PLAYER 2 WINS!!!", True, WHITE)
+        wn.blit(endscreen, (100, 250))
+
+    #updates display with new shape
+    pygame.display.update()
