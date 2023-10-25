@@ -1,6 +1,6 @@
 This is my own custom version of the classic game Pong. It was initially created with the help of a tutorial and then I modified the code to fit my own personal tastes (see below for more details).
 
-Controls:
+PLAYING THE GAME
 This is a two-player game where both players utilize a keyboard on the same computer to play against each other (or you can play against yourself).
 
 Player 1 controls the left paddle.
@@ -26,6 +26,12 @@ Paddles will be stationary at the start of the game and after a teleport move. O
 Each player only has 5 uses of a "super" move. This includes both the super-reflection and the teleport.
 
 The first player to score 5 points wins!
+
+SETUP
+Open the project in your preferred Python IDE or text editor.
+Run the main.py file to start the Pong game.
+Just like I did with the original tutorial file, feel free to experiment and customize the game to make it your own!
+Have fun and enjoy!
 
 CREDIT
 
