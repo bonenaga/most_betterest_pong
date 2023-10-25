@@ -15,7 +15,7 @@ down: moves the paddle down
 right: (super) teleports the paddle to match the current y-axis of the ball
 left: (super) the next collision with the paddle will reflect the ball 3 times as fast
 
-The ball moves in a random direction at the start and each time it resets to the center.
+The ball moves in a random direction at the start and each time it resets to the center. There is no startup screen; the game will begin as soon as it loads so be ready to go!
 
 The ball starts off slow but will move faster and faster with each paddle collision or with each point scored.
 
@@ -57,4 +57,4 @@ SUMMARY OF CHANGES
 
 -Font: The tutorial used calibri as the font for all text but this turned out to be problematic on my Debian Linux computer. I switched the font to arial which was not an issue since arial was included in the distro be default.
 
--Endgame: I raised the endgame points to 5 rather than 3 because my other changes mean the game already moves really fast. I also froze the x-movement of the ball when the win message was shown because sometimes the game would say that one player had won but a few seconds later changed it to say that the other player had won.
+-Endgame: I raised the endgame points to 5 rather than 3 because my other changes already cause the game to move really fast. I also froze the x-axis movement of the ball when the win message was shown because sometimes the game would say that one player had won but a few seconds later changed it to say that the other player had won. I suspect the ball was still being "moved" even though it wasn't drawn and was scoring points in the background.
